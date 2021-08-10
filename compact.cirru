@@ -43,7 +43,7 @@
                 states $ :states store
                 cursor $ either (:cursor states) ([])
                 state $ either (:data states)
-                  {} $ :content "\""
+                  {} (:content "\"") (:voice? false)
               div
                 {} $ :style
                   merge ui/global ui/fullscreen ui/row $ {} (:background-color :white) (:font-size 16)
@@ -51,16 +51,23 @@
                   {} $ :style
                     merge ui/column $ {} (:width "\"28%")
                       :background-color $ hsl 0 0 94
-                  memof-call comp-menu
+                  memof-call comp-menu $ :voice? state
                   div
                     {} $ :style
-                      {} (:padding "\"0 8px")
+                      merge ui/row-parted $ {} (:padding "\"0 8px") (:user-select :none)
                         :border-top $ str "\"1px solid " (hsl 0 0 90)
                     a $ {}
                       :style $ {} (:font-size 14)
                       :href "\"https://github.com/b-conf/hestory"
                       :target "\"_blank"
                       :inner-text "\"源码查看 GitHub."
+                    span $ {} (:inner-text "\"Voice")
+                      :style $ {}
+                        :color $ if (:voice? state) (hsl 240 60 60) (hsl 0 0 80)
+                        :cursor :pointer
+                        :font-family ui/font-fancy
+                      :on-click $ fn (e d!)
+                        d! cursor $ update state :voice? not
                 div
                   {} $ :style (merge ui/expand ui/column)
                   memof-call comp-header
@@ -68,42 +75,45 @@
                   memof-call comp-input $ >> states :input
                   when dev? $ comp-reel (>> states :reel) reel ({})
         |comp-menu $ quote
-          defcomp comp-menu () $ div
-            {} $ :style
-              merge ui/expand $ {} (:padding "\"16px 0") (:line-height "\"36px")
-            list-> ({})
-              -> reading-list $ map
-                fn (info)
-                  [] (:idx info)
-                    div
-                      {} (:class-name "\"hover-item")
-                        :style $ merge ui/row-middle
-                          {} (:cursor :pointer) (:padding "\"0 8px")
-                        :on-click $ fn (e d!) (js/window.speechSynthesis.cancel)
-                          read-content (:messages info) 0 d!
-                      comp-icon :link
-                        {} (:font-size 14)
-                          :color $ hsl 230 70 70
-                          :line-height "\"14px"
-                        , nil
-                      =< 2 nil
-                      <> (:idx info)
-                        {}
-                          :color $ hsl 0 0 70
-                          :font-size 12
-                          :font-family ui/font-code
-                      =< 8 nil
-                      <> $ :title info
-                      =< 8 nil
-                      <>
-                        str $ count (:messages info)
-                        {} (:font-size 12)
-                          :background-color $ hsl 200 60 85
-                          :color :white
-                          :padding "\"0px 5px"
-                          :border-radius "\"8px"
-                          :line-height "\"16px"
-            =< nil 80
+          defcomp comp-menu (voice?)
+            div
+              {} $ :style
+                merge ui/expand $ {} (:padding "\"16px 0") (:line-height "\"36px")
+              list-> ({})
+                -> reading-list $ map
+                  fn (info)
+                    [] (:idx info)
+                      div
+                        {} (:class-name "\"hover-item")
+                          :style $ merge ui/row-middle
+                            {} (:cursor :pointer) (:padding "\"0 8px")
+                          :on-click $ fn (e d!) (js/window.speechSynthesis.cancel)
+                            if voice?
+                              read-content (:messages info) 0 d!
+                              swap-messages (:messages info) d!
+                        comp-icon :link
+                          {} (:font-size 14)
+                            :color $ hsl 230 70 70
+                            :line-height "\"14px"
+                          , nil
+                        =< 2 nil
+                        <> (:idx info)
+                          {}
+                            :color $ hsl 0 0 70
+                            :font-size 12
+                            :font-family ui/font-code
+                        =< 8 nil
+                        <> $ :title info
+                        =< 8 nil
+                        <>
+                          str $ count (:messages info)
+                          {} (:font-size 12)
+                            :background-color $ hsl 200 60 85
+                            :color :white
+                            :padding "\"0px 5px"
+                            :border-radius "\"8px"
+                            :line-height "\"16px"
+              =< nil 80
         |speech! $ quote
           defn speech! (text cb)
             let
@@ -220,6 +230,8 @@
                     xs $ js/document.querySelectorAll "\"audio"
                   .!forEach xs $ fn (x i ? n) (.!remove x)
                 js/window.speechSynthesis.cancel
+        |swap-messages $ quote
+          defn swap-messages (messages d!) (d! :swap-messages messages)
         |reading-list $ quote
           def reading-list $ []
             parse-cirru-edn $ slurp "\"data/002-agile.cirru"
@@ -271,11 +283,15 @@
           def url-pattern $ new js/RegExp "\"https?:[\\w\\d\\/_#\\.\\=\\?\\-]+"
         |effect-render-icon $ quote
           defeffect effect-render-icon (label) (action el at?)
-            let
-                svg-ns "\"http://www.w3.org/2000/svg"
-                svg $ js/document.createElementNS svg-ns "\"svg"
-              .!appendChild el svg
-              jdenticon/update svg label
+            case-default action nil
+              :mount $ let
+                  svg-ns "\"http://www.w3.org/2000/svg"
+                  svg $ js/document.createElementNS svg-ns "\"svg"
+                .!appendChild el svg
+                jdenticon/update svg label
+              :update $ let
+                  svg $ .!querySelector el "\"svg"
+                jdenticon/update svg label
     |app.schema $ {}
       :ns $ quote (ns app.schema)
       :defs $ {}
@@ -297,6 +313,7 @@
               :hydrate-storage data
               :message $ update store :messages
                 fn (xs) (conj xs data)
+              :swap-messages $ assoc store :messages data
               :clear $ assoc store :messages ([])
     |app.main $ {}
       :ns $ quote
