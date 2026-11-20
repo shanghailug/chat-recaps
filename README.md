@@ -6,6 +6,10 @@ Chat Recaps
 
 Demo _TODO_
 
+### Calcit 0.44.0
+
+构建需要 Calcit 和 `@calcit/procs` 0.44.0。PR 仅运行检查和构建，原服务器部署仅在主分支推送时执行。
+
 ### Usages
 
 从微信扒数据, 然后按照 `data/` 当中的格式保存, 再源码里进行索引.
