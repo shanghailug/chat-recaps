@@ -29,7 +29,7 @@
                   button $ {} (:inner-text "|001 OCR") (:style ui/button)
                     :on-click $ fn (e d!)
                       d! $ schema/Action :set-recap |001
-                  =< 8 nil
+                  space-x 8
                   button $ {} (:inner-text "|002 Agile") (:style ui/button)
                     :on-click $ fn (e d!)
                       d! $ schema/Action :set-recap |002
@@ -57,7 +57,7 @@
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
             respo.core :refer $ defcomp div span button <> list->
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             app.schema :as schema
             app.data :as data
     'app.data $ %{} 'FileEntry
