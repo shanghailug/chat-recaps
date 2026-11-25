@@ -6,9 +6,9 @@ Chat Recaps
 
 Demo _TODO_
 
-### Calcit 0.44.0
+### Calcit 0.45.1
 
-构建需要 Calcit 和 `@calcit/procs` 0.44.0。PR 仅运行检查和构建，原服务器部署仅在主分支推送时执行。
+构建需要 Calcit 和 `@calcit/procs` 0.45.1。PR 仅运行检查和构建，原服务器部署仅在主分支推送时执行。
 
 ### Usages
 
