@@ -33,11 +33,12 @@
                   button $ {} (:inner-text "|002 Agile") (:style ui/button)
                     :on-click $ fn (e d!)
                       d! $ schema/Action :set-recap |002
-                list->
+                respo.core/keyed->
                   {} $ :style $ merge ui/expand
                     {} $ :overflow :auto
                   map-indexed filtered $ fn (idx msg)
-                    [] idx $ comp-message msg
+                    hint-fn $ Fn Number (Map Tag String) (-> respo.schema/ChildPair)
+                    respo.core/keyed-component idx $ comp-message msg
           :examples $ []
           :schema $ quote $ Fn String (-> respo.schema/Component)
         'comp-message $ %{} 'CodeEntry (:doc |)
@@ -56,7 +57,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
-            respo.core :refer $ defcomp div span button <> list->
+            respo.core :refer $ defcomp div span button <>
             respo.comp.space :refer $ space-x
             app.schema :as schema
             app.data :as data
